@@ -926,11 +926,16 @@ for all naturals `m`, `n`, and `p`.
   (suc (n + m)) * p
   ≡⟨⟩
   p + ((n + m) * p)
-  -- ≡⟨ cong (p +_) (*-distrib-+ m n p) ⟩ 
+  ≡⟨ cong (p +_) (cong (_* p) (+-comm n m)) ⟩
+  p + ((m + n) * p)
+  ≡⟨ cong (p +_) (*-distrib-+ m n p) ⟩ 
+  p + ((m * p) + (n * p))
+  ≡⟨ sym (+-assoc p (m * p) (n * p)) ⟩
+  (p + (m * p)) + (n * p)
   ≡⟨⟩
-  {!   !}
-
-  ```
+  ((suc m) * p) + (n * p)
+  ∎
+```
 
 #### Exercise `*-assoc` (recommended) {#times-assoc}
 
@@ -941,7 +946,19 @@ Show multiplication is associative, that is,
 for all naturals `m`, `n`, and `p`.
 
 ```agda
--- Your code goes here
+*-assoc : ∀ (m n p : ℕ) → (m * n) * p ≡ m * (n * p)
+*-assoc zero n p = refl
+*-assoc (suc m) n p = 
+  -- WTS ((suc m) * n) * p ≡ (suc m) * (n * p)
+  ((suc m) * n) * p
+  ≡⟨⟩
+  (n + (m * n)) * p
+  ≡⟨ *-distrib-+  n (m * n) p ⟩
+  (n * p) + ((m * n) * p)
+  ≡⟨ cong ((n * p) +_) (*-assoc m n p) ⟩
+  (n * p) + (m * (n * p))
+  ∎
+
 ```
 
 
@@ -955,7 +972,27 @@ for all naturals `m` and `n`.  As with commutativity of addition,
 you will need to formulate and prove suitable lemmas.
 
 ```agda
--- Your code goes here
+
+*-zero : ∀ (n : ℕ) → n * zero ≡ zero
+*-zero zero = refl
+*-zero (suc n) =
+  (suc n) * zero
+  ≡⟨⟩
+  zero + (n * zero)
+  ≡⟨⟩
+  (n * zero)
+  ≡⟨ *-zero n ⟩
+  zero
+  ∎
+
+*-zero-comm : ∀ (n : ℕ) → zero * n ≡ n * zero
+*-zero-comm zero = refl
+*-zero-comm (suc n) rewrite *-zero n = refl
+
+*-comm : ∀ (m n : ℕ) → m * n ≡ n * m
+*-comm zero n rewrite *-zero-comm n = {!   !}
+*-comm (suc m) n = {!   !}
+
 ```
 
 
