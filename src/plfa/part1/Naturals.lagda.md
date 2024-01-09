@@ -78,7 +78,8 @@ successor of two; and so on.
 Write out `7` in longhand.
 
 ```agda
--- Your code goes here
+seven : ℕ
+seven = suc (suc (suc (suc (suc (suc (suc (suc zero)))))))
 ```
 
 You will need to give both a type signature and definition for the
@@ -437,7 +438,23 @@ other word for evidence, which we will use interchangeably, is _proof_.
 Compute `3 + 4`, writing out your reasoning as a chain of equations, using the equations for `+`.
 
 ```agda
--- Your code goes here
+_ : 3 + 4 ≡ 7
+_ = 3 + 4
+  ≡⟨⟩
+    suc (2 + 4)
+  ≡⟨⟩
+    suc (suc (1 + 4))
+  ≡⟨⟩
+    suc (suc (suc (0 + 4)))
+  ≡⟨⟩
+    suc (suc (suc 4))
+  ≡⟨⟩
+    suc (suc 5)
+  ≡⟨⟩
+    suc 6
+  ≡⟨⟩
+    7
+  ∎
 ```
 
 
@@ -513,7 +530,9 @@ Define exponentiation, which is given by the following equations:
 Check that `3 ^ 4` is `81`.
 
 ```agda
--- Your code goes here
+_^_ : ℕ → ℕ → ℕ
+m ^ zero = 1
+m ^ (suc n) = m * (m ^ n)
 ```
 
 
@@ -787,6 +806,13 @@ Begin by typing:
     _+_ : ℕ → ℕ → ℕ
     m + n = ?
 
+
+```agda
+_++_ : ℕ → ℕ → ℕ
+zero ++ n = n
+suc m ++ n = suc (m ++ n)
+```
+
 The question mark indicates that you would like Agda to help with
 filling in that part of the code. If you type `C-c C-l` (pressing
 the control key while hitting the `c` key followed by the `l` key),
@@ -943,7 +969,60 @@ represents a positive natural, and represent zero by `⟨⟩ O`.
 Confirm that these both give the correct answer for zero through four.
 
 ```agda
--- Your code goes here
+inc : Bin → Bin
+inc ⟨⟩ = ⟨⟩ I
+inc (b O) = b I
+inc (b I) = (inc b) O
+
+to : ℕ → Bin
+to zero = ⟨⟩ O
+to (suc n) = inc (to n)
+
+fromHelper : Bin → ℕ → ℕ
+fromHelper ⟨⟩ _ = 0
+fromHelper (b O) idx = fromHelper b (suc idx)
+fromHelper (b I) idx = (2 ^ idx) + (fromHelper b (suc idx))
+
+
+from : Bin → ℕ
+from b = fromHelper b 0
+
+-- inc tests
+inc0 : inc (⟨⟩ O) ≡ ⟨⟩ I
+inc0 = refl
+
+inc1 : inc (⟨⟩ I) ≡ ⟨⟩ I O
+inc1 = refl
+
+inc2 : inc (⟨⟩ I O) ≡ ⟨⟩ I I
+inc2 = refl
+
+inc3 : inc (⟨⟩ I I) ≡ ⟨⟩ I O O
+inc3 = refl
+
+to0 : (to 0) ≡ ⟨⟩ O
+to0 = refl
+
+to1 : to 1 ≡ ⟨⟩ I
+to1 = refl
+
+to2 : to 2 ≡ ⟨⟩ I O
+to2 = refl
+
+from0 : from (⟨⟩ O) ≡ 0
+from0 = refl
+
+from1 : from (⟨⟩ I) ≡ 1
+from1 = refl
+
+from2 : from (⟨⟩ I O) ≡ 2
+from2 = refl
+
+from3 : from (⟨⟩ I I) ≡ 3
+from3 = refl
+
+from4 : from (⟨⟩ I O O) ≡ 4
+from4 = refl
 ```
 
 
@@ -1016,3 +1095,4 @@ move the cursor onto the character and use `quail-show-key` with:
 
 You'll see a key sequence of the character in mini buffer.
 If you run `M-x quail-show-key` on say `∸`, you will see `\.-` for the character.
+ 

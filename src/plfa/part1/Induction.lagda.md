@@ -890,7 +890,16 @@ just apply the previous results which show addition
 is associative and commutative.
 
 ```agda
--- Your code goes here
++-swap-assoc : ∀ (m n p : ℕ) → m + (n + p) ≡ n + (m + p)
++-swap-assoc m n p =
+  m + (n + p)
+    ≡⟨ sym (+-assoc m n p) ⟩
+  (m + n) + p
+    ≡⟨ cong (_+ p) (+-comm m n) ⟩
+  (n + m) + p
+    ≡⟨ +-assoc n m p ⟩
+  n + (m + p)
+  ∎
 ```
 
 
@@ -903,9 +912,25 @@ Show multiplication distributes over addition, that is,
 for all naturals `m`, `n`, and `p`.
 
 ```agda
--- Your code goes here
-```
+-- +-suc : ∀ (m n : ℕ) → m + suc n ≡ suc (m + n)
 
+
+*-distrib-+ : ∀(m n p : ℕ) → (m + n) * p ≡ m * p + n * p 
+*-distrib-+ zero n p = refl
+*-distrib-+ (suc m) n p =
+  -- WTS ((suc m) * p) + (n * p)
+  ((suc m) + n) * p 
+  ≡⟨ cong (_* p) (+-comm (suc m) n) ⟩
+  (n + (suc m)) * p
+  ≡⟨ cong (_* p) (+-suc n m) ⟩
+  (suc (n + m)) * p
+  ≡⟨⟩
+  p + ((n + m) * p)
+  -- ≡⟨ cong (p +_) (*-distrib-+ m n p) ⟩ 
+  ≡⟨⟩
+  {!   !}
+
+  ```
 
 #### Exercise `*-assoc` (recommended) {#times-assoc}
 
