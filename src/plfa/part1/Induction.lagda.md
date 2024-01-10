@@ -1043,7 +1043,12 @@ Show
 for all naturals `n`. Did your proof require induction?
 
 ```agda
--- Your code goes here
+--monus0 : (∀ n : ℕ) → zero ∸ n ≡ zero
+--monus0 n = ?
+
+monus-zero : ∀ (n : ℕ) → zero ∸ n ≡ zero
+monus-zero zero = refl
+monus-zero (suc n) = refl
 ```
 
 
@@ -1056,7 +1061,36 @@ Show that monus associates with addition, that is,
 for all naturals `m`, `n`, and `p`.
 
 ```agda
--- Your code goes here
+
+∸-zero-elim : ∀ (n : ℕ) → 0 ∸ n ≡ 0
+∸-zero-elim zero = refl
+∸-zero-elim (suc n) = refl
+ 
+∸-+-assoc : ∀ (m n p : ℕ) → (m ∸ n) ∸ p ≡ m ∸ (n + p)
+∸-+-assoc zero n p = 
+  (zero ∸ n) ∸ p
+  ≡⟨ cong ( _∸ p) (∸-zero-elim n) ⟩
+  zero ∸ p
+  ≡⟨ ∸-zero-elim p ⟩
+  zero
+  ≡⟨ sym (∸-zero-elim (n + p)) ⟩
+  zero ∸ (n + p)
+  ∎
+∸-+-assoc (suc m) zero p = refl
+∸-+-assoc (suc m) (suc n) zero = 
+  ((suc m) ∸ (suc n)) ∸ 0
+  ≡⟨⟩
+  (suc m ∸ suc n)
+  ≡⟨ cong (suc m ∸_) (sym (+-identityʳ (suc n))) ⟩
+  (suc m ∸ (suc n + zero))
+  ∎
+∸-+-assoc (suc m) (suc n) (suc p) = 
+  (suc m ∸ suc n) ∸ (suc p)
+  -- ≡⟨⟩
+  -- (m ∸ n) ∸ (suc p)
+  ≡⟨ ∸-+-assoc m n (suc p)⟩
+  m ∸ (n + (suc p))
+  ∎
 ```
 
 
