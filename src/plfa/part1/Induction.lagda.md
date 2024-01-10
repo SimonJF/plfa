@@ -989,10 +989,48 @@ you will need to formulate and prove suitable lemmas.
 *-zero-comm zero = refl
 *-zero-comm (suc n) rewrite *-zero n = refl
 
-*-comm : ∀ (m n : ℕ) → m * n ≡ n * m
-*-comm zero n rewrite *-zero-comm n = {!   !}
-*-comm (suc m) n = {!   !}
+*-factor-1 : ∀ (m n : ℕ) → m * (1 + n) ≡ m + (m * n)
+*-factor-1 zero n = refl
+*-factor-1 (suc m) n = 
+  (suc m) * (1 + n)
+  ≡⟨⟩ 
+  (1 + n) + (m * (1 + n))
+  ≡⟨ cong ((1 + n) +_) (*-factor-1 m n) ⟩ 
+  (1 + n) + (m + (m * n))
+  ≡⟨ sym (+-assoc (1 + n) m (m * n)) ⟩
+  ((1 + n) + m) + (m * n)
+  ≡⟨ cong (_+ (m * n)) (+-assoc 1 n m) ⟩
+  (1 + (n + m)) + (m * n)
+  ≡⟨ cong (_+ (m * n)) (cong (1 +_) (+-comm n m)) ⟩
+  (1 + (m + n)) + (m * n)
+  ≡⟨ cong (_+ (m * n)) (+-assoc 1 m n) ⟩
+  ((1 + m) + n) + (m * n)
+  ≡⟨ +-assoc (1 + m) n (m * n) ⟩
+  (1 + m) + (n + (m * n))
+  ≡⟨⟩
+  (1 + m) + (n + (m * n))
+  ≡⟨⟩
+  (suc m) + (suc m * n)
+  ∎
+  
+--  (1 + m) + (n + m * n)
+--  ≡⟨⟩
+--  (1 + m) + (suc m * n) 
+--  ∎
 
+
+*-comm : ∀ (m n : ℕ) → m * n ≡ n * m
+*-comm zero n rewrite *-zero-comm n 
+ | cong (n *_) (*-zero n) = refl
+*-comm (suc m) n = 
+  suc m * n
+  ≡⟨⟩
+  n + (m * n)
+  ≡⟨ cong (n +_) (*-comm m n) ⟩
+  n + (n * m)
+  ≡⟨ sym (*-factor-1 n m) ⟩
+  n * suc m
+  ∎
 ```
 
 
