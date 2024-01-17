@@ -989,10 +989,48 @@ you will need to formulate and prove suitable lemmas.
 *-zero-comm zero = refl
 *-zero-comm (suc n) rewrite *-zero n = refl
 
-*-comm : ∀ (m n : ℕ) → m * n ≡ n * m
-*-comm zero n rewrite *-zero-comm n = {!   !}
-*-comm (suc m) n = {!   !}
+*-factor-1 : ∀ (m n : ℕ) → m * (1 + n) ≡ m + (m * n)
+*-factor-1 zero n = refl
+*-factor-1 (suc m) n = 
+  (suc m) * (1 + n)
+  ≡⟨⟩ 
+  (1 + n) + (m * (1 + n))
+  ≡⟨ cong ((1 + n) +_) (*-factor-1 m n) ⟩ 
+  (1 + n) + (m + (m * n))
+  ≡⟨ sym (+-assoc (1 + n) m (m * n)) ⟩
+  ((1 + n) + m) + (m * n)
+  ≡⟨ cong (_+ (m * n)) (+-assoc 1 n m) ⟩
+  (1 + (n + m)) + (m * n)
+  ≡⟨ cong (_+ (m * n)) (cong (1 +_) (+-comm n m)) ⟩
+  (1 + (m + n)) + (m * n)
+  ≡⟨ cong (_+ (m * n)) (+-assoc 1 m n) ⟩
+  ((1 + m) + n) + (m * n)
+  ≡⟨ +-assoc (1 + m) n (m * n) ⟩
+  (1 + m) + (n + (m * n))
+  ≡⟨⟩
+  (1 + m) + (n + (m * n))
+  ≡⟨⟩
+  (suc m) + (suc m * n)
+  ∎
+  
+--  (1 + m) + (n + m * n)
+--  ≡⟨⟩
+--  (1 + m) + (suc m * n) 
+--  ∎
 
+
+*-comm : ∀ (m n : ℕ) → m * n ≡ n * m
+*-comm zero n rewrite *-zero-comm n 
+ | cong (n *_) (*-zero n) = refl
+*-comm (suc m) n = 
+  suc m * n
+  ≡⟨⟩
+  n + (m * n)
+  ≡⟨ cong (n +_) (*-comm m n) ⟩
+  n + (n * m)
+  ≡⟨ sym (*-factor-1 n m) ⟩
+  n * suc m
+  ∎
 ```
 
 
@@ -1005,7 +1043,12 @@ Show
 for all naturals `n`. Did your proof require induction?
 
 ```agda
--- Your code goes here
+--monus0 : (∀ n : ℕ) → zero ∸ n ≡ zero
+--monus0 n = ?
+
+monus-zero : ∀ (n : ℕ) → zero ∸ n ≡ zero
+monus-zero zero = refl
+monus-zero (suc n) = refl
 ```
 
 
@@ -1018,7 +1061,36 @@ Show that monus associates with addition, that is,
 for all naturals `m`, `n`, and `p`.
 
 ```agda
--- Your code goes here
+
+∸-zero-elim : ∀ (n : ℕ) → 0 ∸ n ≡ 0
+∸-zero-elim zero = refl
+∸-zero-elim (suc n) = refl
+ 
+∸-+-assoc : ∀ (m n p : ℕ) → (m ∸ n) ∸ p ≡ m ∸ (n + p)
+∸-+-assoc zero n p = 
+  (zero ∸ n) ∸ p
+  ≡⟨ cong ( _∸ p) (∸-zero-elim n) ⟩
+  zero ∸ p
+  ≡⟨ ∸-zero-elim p ⟩
+  zero
+  ≡⟨ sym (∸-zero-elim (n + p)) ⟩
+  zero ∸ (n + p)
+  ∎
+∸-+-assoc (suc m) zero p = refl
+∸-+-assoc (suc m) (suc n) zero = 
+  ((suc m) ∸ (suc n)) ∸ 0
+  ≡⟨⟩
+  (suc m ∸ suc n)
+  ≡⟨ cong (suc m ∸_) (sym (+-identityʳ (suc n))) ⟩
+  (suc m ∸ (suc n + zero))
+  ∎
+∸-+-assoc (suc m) (suc n) (suc p) = 
+  (suc m ∸ suc n) ∸ (suc p)
+  -- ≡⟨⟩
+  -- (m ∸ n) ∸ (suc p)
+  ≡⟨ ∸-+-assoc m n (suc p)⟩
+  m ∸ (n + (suc p))
+  ∎
 ```
 
 
