@@ -14,9 +14,10 @@ the next step is to define relations, such as _less than or equal_.
 
 ```agda
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl; cong)
-open import Data.Nat using (ℕ; zero; suc; _+_)
-open import Data.Nat.Properties using (+-comm; +-identityʳ)
+open Eq using (_≡_; refl; cong; sym)
+open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
+open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
+open import Data.Nat.Properties using (+-comm; *-comm; +-identityʳ; *-zeroʳ; *-zeroˡ; *-identityˡ; *-identityʳ)
 ```
 
 
@@ -244,12 +245,14 @@ Give an example of a preorder that is not a partial order.
 
 ```agda
 -- Your code goes here
+-- TODO
 ```
 
 Give an example of a partial order that is not a total order.
 
 ```agda
 -- Your code goes here
+-- TODO
 ```
 
 ## Reflexivity
@@ -263,7 +266,14 @@ as that will make it easier to invoke reflexivity:
     -----
   → n ≤ n
 ≤-refl {zero} = z≤n
-≤-refl {suc n} = s≤s ≤-refl
+≤-refl {suc n} = s≤s (≤-refl {n})
+
+≤-refl-explicit : ∀ {n : ℕ}
+    -----
+  → n ≤ n
+≤-refl-explicit {zero} = z≤n
+≤-refl-explicit {suc n} = s≤s (≤-refl-explicit {n})
+
 ```
 The proof is a straightforward induction on the implicit argument `n`.
 In the base case, `zero ≤ zero` holds by `z≤n`.  In the inductive
@@ -285,8 +295,8 @@ hold, then `m ≤ p` holds.  Again, `m`, `n`, and `p` are implicit:
   → n ≤ p
     -----
   → m ≤ p
-≤-trans z≤n       _          =  z≤n
-≤-trans (s≤s m≤n) (s≤s n≤p)  =  s≤s (≤-trans m≤n n≤p)
+≤-trans z≤n n≤p = z≤n
+≤-trans (s≤s m≤n) (s≤s n≤p) = s≤s (≤-trans m≤n n≤p)
 ```
 Here the proof is by induction on the _evidence_ that `m ≤ n`.  In the
 base case, the first inequality holds by `z≤n` and must show `zero ≤ p`,
@@ -339,8 +349,8 @@ antisymmetric: for all naturals `m` and `n`, if both `m ≤ n` and
   → n ≤ m
     -----
   → m ≡ n
-≤-antisym z≤n       z≤n        =  refl
-≤-antisym (s≤s m≤n) (s≤s n≤m)  =  cong suc (≤-antisym m≤n n≤m)
+≤-antisym z≤n z≤n = refl
+≤-antisym (s≤s m≤n) (s≤s n≤m) = cong suc (≤-antisym m≤n n≤m)
 ```
 Again, the proof is by induction over the evidence that `m ≤ n`
 and `n ≤ m` hold.
@@ -362,7 +372,7 @@ The above proof omits cases where one argument is `z≤n` and one
 argument is `s≤s`.  Why is it ok to omit them?
 
 ```agda
--- Your code goes here
+-- ???
 ```
 
 
@@ -421,11 +431,11 @@ preference to indexed types when possible.
 With that preliminary out of the way, we specify and prove totality:
 ```agda
 ≤-total : ∀ (m n : ℕ) → Total m n
-≤-total zero    n                         =  forward z≤n
-≤-total (suc m) zero                      =  flipped z≤n
-≤-total (suc m) (suc n) with ≤-total m n
-...                        | forward m≤n  =  forward (s≤s m≤n)
-...                        | flipped n≤m  =  flipped (s≤s n≤m)
+≤-total zero m = forward z≤n
+≤-total (suc m) zero = flipped z≤n
+≤-total (suc m) (suc n) with ≤-total m n 
+...                      | forward m≤n = forward (s≤s m≤n)
+...                      | flipped n≤m = flipped (s≤s n≤m)
 ```
 In this case the proof is by induction over both the first
 and second arguments.  We perform a case analysis:
@@ -552,7 +562,21 @@ transitivity proves `m + p ≤ n + q`, as was to be shown.
 Show that multiplication is monotonic with regard to inequality.
 
 ```agda
--- Your code goes here
+
+*-mono-≤-lem1 : ∀ ( n p q : ℕ) -> p ≤ q -> n * p ≤ n * q
+*-mono-≤-lem1 zero p q p≤q rewrite (*-zeroˡ p)  =  z≤n
+*-mono-≤-lem1 (suc n) p q p≤q = 
+  +-mono-≤ p q (n * p) (n * q) p≤q (*-mono-≤-lem1 n p q p≤q)
+
+*-mono-≤-lem2 : ∀ ( m n p : ℕ ) -> m ≤ n -> m * p ≤ n * p 
+*-mono-≤-lem2 m n p m≤n rewrite (*-comm m p) | (*-comm n p) = *-mono-≤-lem1 p m n m≤n
+
+*-mono-≤ : ∀ (m n p q : ℕ)
+  → m ≤ n
+  → p ≤ q
+    -------------
+  → m * p ≤ n * q
+*-mono-≤ m n p q m≤n p≤q = ≤-trans (*-mono-≤-lem2 m n p m≤n) (*-mono-≤-lem1 n p q p≤q)
 ```
 
 
@@ -841,3 +865,4 @@ This chapter uses the following unicode:
 
 The commands `\^l` and `\^r` give access to a variety of superscript
 leftward and rightward arrows in addition to superscript letters `l` and `r`.
+   
