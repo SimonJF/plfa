@@ -624,7 +624,11 @@ Show that strict inequality is transitive. Use a direct proof. (A later
 exercise exploits the relation between < and ≤.)
 
 ```agda
--- Your code goes here
+
+
+<-trans : ∀ { l m n : ℕ } -> l < m -> m < n -> l < n
+<-trans z<s (s<s m<n) = z<s
+<-trans (s<s l<m) (s<s m<n) = s<s (<-trans l<m m<n)
 ```
 
 #### Exercise `trichotomy` (practice) {#trichotomy}
@@ -642,7 +646,23 @@ similar to that used for totality.
 [negation](/Negation/).)
 
 ```agda
--- Your code goes here
+
+data Trichotomy (m n : ℕ) : Set where
+  lt : m < n -> Trichotomy m n
+  eq : m ≡ n -> Trichotomy m n
+  gt : n < m -> Trichotomy m n
+
+-- Show that strict inequality satisfies trichotomy. 
+-- That is, for any m and n, we can construct a Trichotomy instance.
+
+<-trichotomy : ∀ ( m n : ℕ ) -> Trichotomy m n
+<-trichotomy zero zero = eq refl
+<-trichotomy zero (suc n) = lt z<s
+<-trichotomy (suc m) zero = gt z<s
+<-trichotomy (suc m) (suc n) with <-trichotomy m n
+...                           | lt m<n = lt (s<s m<n)
+...                           | eq refl = eq refl
+...                           | gt n<m = gt (s<s n<m)
 ```
 
 #### Exercise `+-mono-<` (practice) {#plus-mono-less}
@@ -651,7 +671,19 @@ Show that addition is monotonic with respect to strict inequality.
 As with inequality, some additional definitions may be required.
 
 ```agda
--- Your code goes here
+-- uninterestingly, exactly the same proof as before
+
++-mono-<-r : ∀ (n p q : ℕ)
+  -> p < q
+  -> n + p < n + q
++-mono-<-r zero    p q p<q  =  p<q
++-mono-<-r (suc n) p q p<q  =  s<s (+-mono-<-r n p q p<q)
+
++-mono-<-l : ∀ (m n p : ℕ) -> m < n -> m + p < n + p
++-mono-<-l m n p m<n  rewrite +-comm m p | +-comm n p  = +-mono-<-r p m n m<n
+
++-mono-< : ∀ (m n p q : ℕ) -> m < n -> p < q -> m + p < n + q
++-mono-< m n p q m<n p<q  = <-trans (+-mono-<-l m n p m<n) (+-mono-<-r n p q p<q)
 ```
 
 #### Exercise `≤→<, <→≤` (recommended) {#leq-iff-less}
@@ -659,7 +691,16 @@ As with inequality, some additional definitions may be required.
 Show that `suc m ≤ n` implies `m < n`, and conversely.
 
 ```agda
--- Your code goes here
+
+≤→< : ∀ {m n : ℕ} -> suc m ≤ n -> m < n
+≤→< {zero} {suc n} _ = z<s
+≤→< {suc m} {suc n} (s≤s m≤n) = s<s (≤→< {m} {n} m≤n) 
+
+-- strangely enough, once again exactly the same logic 
+<→≤ : ∀ {m n : ℕ} -> m < n -> suc m ≤ n
+<→≤ {zero} {suc n} m<n = s≤s z≤n
+<→≤ {suc m} {suc n} (s<s m<n) = s≤s (<→≤ {m} {n} m<n)
+
 ```
 
 #### Exercise `<-trans-revisited` (practice) {#less-trans-revisited}
@@ -669,7 +710,25 @@ using the relation between strict inequality and inequality and
 the fact that inequality is transitive.
 
 ```agda
--- Your code goes here
+
+m-≤-sm : ∀ ( m : ℕ ) -> m ≤ suc m
+m-≤-sm zero = z≤n
+m-≤-sm (suc m) = s≤s (m-≤-sm m) 
+
+-- Proof sketch
+-- Given that l<m it follows that suc l ≤ m
+-- Given that m < n it follows that suc m ≤ n
+-- m ≤ suc m
+-- By transitivity of ≤ it follows that suc l ≤ n 
+-- By the reverse direction it follows that l < n
+<-trans-revisited : ∀ {l m n : ℕ} -> l < m -> m < n -> l < n
+<-trans-revisited {l} {m} {n} l<m m<n =
+  let sl≤m = <→≤ l<m in
+  let sm≤n = <→≤ m<n in
+  let m≤sm = m-≤-sm m in
+  let sl≤sm = ≤-trans sl≤m m≤sm in
+  let sl≤n = ≤-trans sl≤sm sm≤n in
+  ≤→< sl≤n
 ```
 
 
@@ -776,7 +835,8 @@ successor of the sum of two even numbers, which is even.
 Show that the sum of two odd numbers is even.
 
 ```agda
--- Your code goes here
+o+o≡e : ∀ {m n : ℕ} -> odd m -> odd n -> even (m + n)
+o+o≡e (suc even-m1) odd-n = {!   !}
 ```
 
 #### Exercise `Bin-predicates` (stretch) {#Bin-predicates}
@@ -865,4 +925,4 @@ This chapter uses the following unicode:
 
 The commands `\^l` and `\^r` give access to a variety of superscript
 leftward and rightward arrows in addition to superscript letters `l` and `r`.
-   
+     
