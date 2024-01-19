@@ -14,9 +14,10 @@ the next step is to define relations, such as _less than or equal_.
 
 ```agda
 import Relation.Binary.PropositionalEquality as Eq
+open import Data.Empty using (⊥; ⊥-elim)
 open Eq using (_≡_; refl; cong; sym)
 open Eq.≡-Reasoning using (begin_; _≡⟨⟩_; step-≡; _∎)
-open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
+open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _^_)
 open import Data.Nat.Properties using (+-comm; *-comm; +-identityʳ; *-zeroʳ; *-zeroˡ; *-identityˡ; *-identityʳ)
 ```
 
@@ -836,7 +837,7 @@ Show that the sum of two odd numbers is even.
 
 ```agda
 o+o≡e : ∀ {m n : ℕ} -> odd m -> odd n -> even (m + n)
-o+o≡e (suc even-m1) odd-n = {!   !}
+o+o≡e {suc e1} {o2} (suc even-m1) odd-n rewrite (+-comm e1 o2) = suc (o+e≡o {o2}  {e1} odd-n even-m1)
 ```
 
 #### Exercise `Bin-predicates` (stretch) {#Bin-predicates}
@@ -896,7 +897,75 @@ properties of `One`. It may also help to prove the following:
     to (2 * n) ≡ (to n) O
 
 ```agda
--- Your code goes here
+-- Define a predicate Can : Bin → Set
+-- over all bitstrings that holds if the bitstring is canonical, meaning
+-- it has no leading zeros; the first representation of eleven above is
+-- canonical, and the second is not.
+
+-- To define it, you will need an auxiliary predicate
+-- One : Bin → Set
+
+-- Defined where we have a leading 1,
+-- e.g., ⟨⟩ I O O
+
+-- Imports
+data Bin : Set where
+  ⟨⟩ : Bin
+  _O : Bin → Bin
+  _I : Bin → Bin
+
+inc : Bin → Bin
+inc ⟨⟩ = ⟨⟩ I
+inc (b O) = b I
+inc (b I) = (inc b) O
+
+to : ℕ → Bin
+to zero = ⟨⟩ O
+to (suc n) = inc (to n)
+
+fromHelper : Bin → ℕ → ℕ
+fromHelper ⟨⟩ _ = 0
+fromHelper (b O) idx = fromHelper b (suc idx)
+fromHelper (b I) idx = (2 ^ idx) + (fromHelper b (suc idx))
+
+
+from : Bin → ℕ
+from b = fromHelper b 0
+
+-- Answers
+data One : Bin -> Set where
+  one  : One (⟨⟩ I)
+  _O : ∀ { b : Bin } -> One b -> One (b O)
+  _I : ∀ { b : Bin } -> One b -> One (b I)
+
+data Can : Bin -> Set where
+  canO : Can (⟨⟩ O)
+  canOne : ∀ { b : Bin } -> One b -> Can b
+
+canEleven : Can (⟨⟩ I O I I)
+canEleven = canOne ( one O I I)
+
+
+canon-inc : ∀ { b : Bin } -> Can b -> Can (inc b)
+canon-inc { ⟨⟩ O } canO = canOne one
+canon-inc { ⟨⟩ I } (canOne one) = canOne (one O)
+canon-inc { b O } (canOne (x O)) = canOne (x I)
+canon-inc { b I } (canOne (x I)) = canOne ((oneInc x) O)
+  where oneInc : ∀ { b : Bin } -> One b -> One (inc b)
+        oneInc one = one O
+        oneInc (evi O) = evi I
+        oneInc (evi I) = (oneInc evi) O
+
+canon-to : ∀ (n : ℕ) -> Can (to n)
+canon-to zero = canO
+canon-to (suc x) = canon-inc (canon-to x)
+
+
+
+--    1 ≤ n
+--    ---------------------
+--    to (2 * n) ≡ (to n) O
+
 ```
 
 ## Standard library
